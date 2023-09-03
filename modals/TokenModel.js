@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose'
 
 const tokenExpireSchema = new mongoose.Schema({
   token: {
@@ -24,4 +24,4 @@ const tokenExpireSchema = new mongoose.Schema({
   },
 })
 
-module.exports = tokenExpireSchema;
+export default tokenExpireSchema

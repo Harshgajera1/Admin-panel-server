@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose'
 
 const movixHistorySchema = new mongoose.Schema({
   url: {
@@ -21,8 +21,6 @@ const movixHistorySchema = new mongoose.Schema({
     type: String,
     required: false,
   },
-});
+})
 
-const MovixHistory = mongoose.model('movixhistory', movixHistorySchema)
-
-module.exports = MovixHistory
+export default movixHistorySchema

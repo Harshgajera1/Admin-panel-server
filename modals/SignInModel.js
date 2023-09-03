@@ -1,10 +1,15 @@
-const mongoose = require('mongoose')
+import mongoose from "mongoose";
 
 const signInSchema = new mongoose.Schema({
-    email: String,
-    password: String,
-  });
+  email: {
+    type: String,
+    unique: true,
+    require: true,
+  },
+  password: {
+    type: String,
+    require: true,
+  },
+})
 
-const signInModel = mongoose.model("signin", signInSchema);
-
-module.exports = signInModel
+export default signInSchema

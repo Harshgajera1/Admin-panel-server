@@ -1,62 +1,66 @@
-const signInModel = require('../modals/SignInModel')
-const bcrypt = require('bcrypt')
-const jwt = require('jsonwebtoken');
+import signInSchema from '../modals/SignInModel.js'
+import bcrypt from 'bcrypt'
+import jwt from 'jsonwebtoken'
+import Methods from '../Config/Methods.js'
+import { resMessages } from '../Config/Config.js'
+var collectionName = 'signin'
 
-const signIn = async (req, res) => {
-    console.log(req.body)
-    const email = req.body.email;
-    const password = req.body.password;
-  
-    try {
-      const user = await signInModel.findOne({ email: email });
+const SignIn = async (req, res, next) => {
+  try {
+      const email = req.body.email
+      const password = req.body.password
+
+      const Model = await Methods.createModel(collectionName, signInSchema)
+      const user = await Model.findOne({ email })
+
       if (!user) {
-        const hash = await bcrypt.hash(password, 10);
-        const newUser = new signInModel({
-          email: email,
-          password: hash,
-        });
-        await newUser.save();
-        res.status(200).json({ msg: "Sign in successful." })
+        const hashPass = await bcrypt.hash(password, 10)
+        req.body.password = hashPass
+
+        const resp = await Methods.performCRUD('i', collectionName, signInSchema, req.body)
+        req.responseData = {status : resp.status, message : resMessages['signin']}
       } else {
-        res.status(409).json({ msg: "Email already exist." })
+        req.responseData = {status : 409, message : resMessages['emailinuse']}
       }
+      next()
     } catch (err) {
-      res.status(500).send(err)
-      console.log(err)
+      console.log(e)
+      req.responseData = {status : 500, message : resMessages['error']}
+      next()
     }
   }
 
-  const login = async (req, res) => {
-    const email = req.body.email;
-    const password = req.body.password;
-  
+  const Login = async (req, res, next) => {
     try {
-      const user = await signInModel.findOne({ email: email });
+      const email = req.body.email
+      const password = req.body.password
+      const Model = await Methods.createModel(collectionName, signInSchema)
+      const user = await Model.findOne({ email })
+
       if (user) {
-        const response = await bcrypt.compare(password, user.password);
+        const response = await bcrypt.compare(password, user.password)
         if (response) {
-  
           const payload = {
             nameemail : email
           }
           const token = jwt.sign(payload,process.env.JWT_SECRET_KEY,{expiresIn: '1h'})
-  
-          res.status(200).send({msg: "Login Sucessful.",token})
+
+          req.responseData = {status : 200, message : resMessages['login'], token}
         } else {
-          res.status(401).json({ msg: "Email or password is wrong."})
+          req.responseData = {status : 401, message : resMessages['wrongpass']}
         }
       } else {
-        res.status(404).json({ msg: "User not exist."})
+        req.responseData = {status : 404, message : resMessages['usernotexist']}
       }
+      next()
     } catch (err) {
-      res.status(500).send(err)
-      console.log(err)
+      console.log(e)
+      req.responseData = {status : 500, message : resMessages['error']}
+      next()
     }
-  
   }
 
-
-  module.exports = {
-    signIn,
-    login
-  }
+export {
+  SignIn,
+  Login
+}

@@ -1,40 +1,44 @@
-const MovixHistory = require("../modals/Movix");
+import { resMessages } from "../Config/Config.js";
+import Methods from "../Config/Methods.js";
+import movixHistorySchema from "../modals/Movix.js"
+var collectionName = 'movixhistory'
 
-const movixLog = (req,res) => {
+// Movix Project log
+const LogMovixLog = async (req, res, next) => {
     try {
       const { url } = req;
       const userIP = req.headers['x-forwarded-for'] || req.connection.remoteAddress
       const time = new Date()
       const longitude = req.body.longitude
       const latitude = req.body.latitude
+      const data = { url, time, ip : userIP,longitude, latitude }
 
-      const requestHistory = new MovixHistory({ url, time, ip : userIP,longitude, latitude });
-      requestHistory.save()
+      const resp = await Methods.performCRUD('i',collectionName,movixHistorySchema,data)
 
-      res.status(200).json({ msg: 'User verified' });
+      req.responseData = resp
+      next()
     } catch (e) {
       console.log(e)
-      res.status(500).json({ msg: 'Internal server error' });
+      req.responseData = {status : 500, message : resMessages['error']}
+      next()
     }
 }
 
-
-const movixData = async (req,res) => {
+// Movix Project data
+const ListMovix = async (req, res, next) => {
   try {
-    const pageno = parseInt(req.body.pageno) || 1;
-    const pagelimit = parseInt(req.body.pagelimit) || 20;
-    const skip = (pageno - 1) * pagelimit;
-    
-    const data = await MovixHistory.find().skip(skip).limit(pagelimit)
+    let paginationInfo = req.body.paginationinfo
+    let pipeline = [{$sort : {_id: 1}}]
 
-    const nextpage = data.length >= pagelimit ? 1 : 0
-
-    res.status(200).json({pageno,pagelimit,data,nextpage})
+    const resp =  await Methods.getData(collectionName, movixHistorySchema, pipeline, paginationInfo)
     
-} catch (error) {
-    console.error('Error fetching logs', error)
-    res.status(500).json({ error: 'Failed to fetch logs' })
-}
+    req.responseData = resp
+    next()
+  } catch (e) {
+    console.log(e)
+    req.responseData = { status: 500, message : resMessages['error'] }
+    next()
+  }
 }
 
-module.exports = { movixLog, movixData }
+export { LogMovixLog, ListMovix }

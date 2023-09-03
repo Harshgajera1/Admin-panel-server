@@ -1,7 +1,8 @@
-const jwt = require('jsonwebtoken');
-const tokenExpireSchema = require('../modals/TokenModel');
-const Methods = require('../Config/Methods');
-const { resMessages } = require('../Config/Config');
+import jwt from 'jsonwebtoken'
+import tokenExpireSchema from '../modals/TokenModel.js'
+import Methods from '../Config/Methods.js'
+import { resMessages } from '../Config/Config.js'
+var collectionName = 'tokenexpire'
 
 const GenerateToken = async (req, res, next) => {
   try {
@@ -22,7 +23,7 @@ const GenerateToken = async (req, res, next) => {
       ip: userIP,
     }
 
-    const resp = await Methods.performCRUD('i','TokenExpire', tokenExpireSchema, tokenDetails)
+    const resp = await Methods.performCRUD('i', collectionName, tokenExpireSchema, tokenDetails)
 
      // Set the token in the response headers
      res.setHeader('Authorization', token)
@@ -32,11 +33,11 @@ const GenerateToken = async (req, res, next) => {
        resp.data = token
      }
 
-     res.data = resp
+     req.responseData = resp
      next()
   } catch (e) {
     console.log(e)
-    res.data({status : 500, message : resMessages['error']})
+    req.responseData = {status : 500, message : resMessages['error']}
     next()
   }
 };
@@ -44,17 +45,17 @@ const GenerateToken = async (req, res, next) => {
 const VerifyToken = async (req, res, next) => {
   try {
     const decoded = await jwt.verify(req.body.token, process.env.JWT_SECRET_KEY);
-    res.data = {
+    req.responseData = {
       status : 200,
       date : decoded
     }
     next()
   } catch (e) {
     console.log(e)
-    res.data({status : 500, message : resMessages['error']})
+    req.responseData = {status : 500, message : resMessages['error']}
     next()
   }
 }
 
-module.exports = { GenerateToken, VerifyToken }
+export { GenerateToken, VerifyToken }
 

@@ -1,27 +1,26 @@
-const express = require('express')
-const { signIn, login } = require('./controllers/SignIn')
-const { GenerateToken, VerifyToken } = require('./controllers/Token')
-const { portfolioLog, ListPortfolioData, ListPortfolioForm, InsertPortfolioForm } = require('./controllers/PortfolioWebsite')
-const { movixLog, movixData } = require('./controllers/Movix')
-const { sendResponse } = require('./Config/Config')
+import express from 'express'
+import { SignIn, Login } from './controllers/SignIn.js'
+import { GenerateToken, VerifyToken } from './controllers/Token.js'
+import { LogPortfolio, ListPortfolio, ListPortfolioForm, InsertPortfolioForm } from './controllers/PortfolioWebsite.js'
+import { LogMovixLog, ListMovix } from './controllers/Movix.js'
+import { sendResponse } from './Config/Config.js'
 
 const router = express.Router()
 
-  // live projects History Api  
-  router.post('/portfolio',portfolioLog)
-  router.post('/portfolioform',ListPortfolioForm,sendResponse)
-  router.post('/portfolioform/insert',InsertPortfolioForm,sendResponse)
-  router.post('/movix',movixLog)
+// portfolio website Api's
+router.post('/portfoliolog', LogPortfolio, sendResponse)
+router.post('/portfolio', ListPortfolio, sendResponse)
+router.post('/portfolioform/insert', InsertPortfolioForm, sendResponse)
+router.post('/portfolioform', ListPortfolioForm, sendResponse)
 
-  router.post('/portfoliodata',ListPortfolioData)
-  router.post('/movixdata',movixData)
-  router.post('/portfolioform',movixData)
+// Movix Project Api's
+router.post('/movixlog', LogMovixLog, sendResponse)
+router.post('/movix', ListMovix, sendResponse)
 
-  router.post("/register",signIn)
-  
-  router.post("/login", login)
+// Admin panel
+router.post("/signin", SignIn, sendResponse)
+router.post("/login", Login, sendResponse)
+router.post('/getacesstoken', GenerateToken, sendResponse)
+router.post('/verifytoken', VerifyToken, sendResponse)
 
-  router.post('/getacesstoken', GenerateToken, sendResponse)
-  router.post('/verifytoken', VerifyToken, sendResponse)
-
-  module.exports = router
+export default router

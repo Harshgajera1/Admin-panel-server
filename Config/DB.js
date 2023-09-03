@@ -1,5 +1,5 @@
-const mongoose = require("mongoose")
-const { MONGO_URL } = require("./Config")
+import mongoose from "mongoose"
+import { MONGO_URL } from "./Config.js"
 
 mongoose.connect(MONGO_URL, {
     useNewUrlParser: true,

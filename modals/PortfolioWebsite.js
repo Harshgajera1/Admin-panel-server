@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose'
 
 const portfolioHistorySchema = new mongoose.Schema({
   url: {
@@ -20,13 +20,7 @@ const portfolioHistorySchema = new mongoose.Schema({
   latitude: {
     type: String,
     required: false,
-  },
-  // ipdetails: {
-  //   type: Object,
-  //   required: false,
-  // },
-});
+  }
+})
 
-const PortfolioHistory = mongoose.model('portfoliohistory', portfolioHistorySchema)
-
-module.exports = PortfolioHistory
+export default portfolioHistorySchema

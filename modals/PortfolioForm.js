@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose'
 
 const portfolioFormSchema = new mongoose.Schema({
     name: {
@@ -14,4 +14,4 @@ const portfolioFormSchema = new mongoose.Schema({
   }
 })
 
-module.exports = portfolioFormSchema
+export default portfolioFormSchema

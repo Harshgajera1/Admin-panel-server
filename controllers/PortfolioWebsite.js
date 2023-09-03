@@ -1,9 +1,11 @@
-const Methods = require("../Config/Methods");
-const PortfolioHistory = require("../modals/PortfolioWebsite");
-const PortfolioForm = require("../modals/PortfolioForm");
-const { resMessages } = require("../Config/Config");
+import Methods from "../Config/Methods.js"
+import portfolioHistorySchema from "../modals/PortfolioWebsite.js"
+import PortfolioForm from "../modals/PortfolioForm.js"
+import { resMessages } from "../Config/Config.js"
+var collectionName = 'portfoliohistory'
 
-const portfolioLog = async (req,res) => {
+// Portfolio website log
+const LogPortfolio = async (req, res, next) => {
     try {
       const { url } = req;
       const userIP = req.headers['x-forwarded-for'] || req.connection.remoteAddress
@@ -11,72 +13,58 @@ const portfolioLog = async (req,res) => {
       const longitude = req.body.longitude
       const latitude = req.body.latitude
       let data = { url, time, ip : userIP,longitude, latitude}
-      // console.log(data)
-      const requestHistory = new PortfolioHistory(data);
-      requestHistory.save()
+      const resp = await Methods.performCRUD('i', collectionName, portfolioHistorySchema, data)
 
-      res.status(200).json({ msg: 'User verified' });
+      req.responseData = resp
+      next()
     } catch (e) {
       console.log(e)
-      res.status(500).json({ msg: 'Internal server error' });
+      req.responseData = {status : 500, message : resMessages['error']}
     }
 }
 
-const ListPortfolioForm = async (req,res,next) =>{
+// Portfolio website data
+const ListPortfolio = async (req, res, next) => {
   try {
-    let resp = await Methods.getDate('portfoliocontactform',PortfolioForm,req.body)
-    res.data = resp
-    next()
-  } catch (e) {
-    res.data = {status : 500, message : resMessages['error']}
-    next()
-  }
-}
+    let paginationInfo = req.body.paginationinfo
+    let pipeline = [{$sort : {_id: 1}}]
 
-const InsertPortfolioForm = async (req, res, next) =>{
-  try {
-    const resp = await Methods.performCRUD('d','portfoliocontactform', PortfolioForm, req.body)
+    const resp =  await Methods.getData(collectionName, portfolioHistorySchema, pipeline, paginationInfo)
     
-    res.data = resp
+    req.responseData = resp
     next()
   } catch (e) {
     console.log(e)
-    res.data = { status: 500, message : resMessages['error'] }
+    req.responseData = { status: 500, message : resMessages['error'] }
     next()
   }
 }
 
-const ListPortfolioData = async (req,res) => {
+// Portfolio website contact form
+const InsertPortfolioForm = async (req, res, next) =>{
   try {
-
-    const pageno = parseInt(req.body.pageno) || 1;
-    const pagelimit = parseInt(req.body.pagelimit) || 20;
-    const skip = (pageno - 1) * pagelimit;
+    const resp = await Methods.performCRUD('i','portfoliocontactform', PortfolioForm, req.body)
     
-    const data = await PortfolioHistory.find().skip(skip).limit(pagelimit)
-
-    const nextpage = data.length >= pagelimit ? 1 : 0
-
-    // console.log({pageno,pagelimit,nextpage})
-
-    // const geo = geoip.lookup('157.32.215.75');
-    // if (geo && geo.ll) {
-    //   const { ll } = geo;
-    //   console.log(geo)
-    //   console.log({ latitude: ll[0], longitude: ll[1] })
-    // } else {
-    //   console.log('error')
-    // }
-
-    // const response = await axios.get(`https://api.ip2location.com/v2/?key=${'dzNdoFH5d7y00ZTM1vAivHbERFLTv9fzGeNGz0mreaCNsklkhFScJH0vJEeB8iwQ'}&ip=${'157.32.215.75'}&package=WS10`);
-    // const response = await axios.get(`http://ip-api.com/json/${'157.32.238.80'}`);
-    // console.log(response)
-
-    res.status(200).json({pageno,pagelimit,data,nextpage})
-  } catch (error) {
-      console.error('Error fetching logs', error)
-      res.status(500).json({ error: 'Failed to fetch logs' })
+    req.responseData = resp
+    next()
+  } catch (e) {
+    console.log(e)
+    req.responseData = { status: 500, message : resMessages['error'] }
+    next()
   }
 }
 
-module.exports = { portfolioLog, ListPortfolioData, ListPortfolioForm, InsertPortfolioForm }
+// Portfolio website contact form data
+const ListPortfolioForm = async (req,res,next) =>{
+  try {
+    let pipeline = [{$sort : {_id: 1}}]
+    let resp = await Methods.getData('portfoliocontactform', PortfolioForm, pipeline)
+    req.responseData = resp
+    next()
+  } catch (e) {
+    req.responseData = { status : 500, message : resMessages['error'] }
+    next()
+  }
+}
+
+export { LogPortfolio, ListPortfolio, ListPortfolioForm, InsertPortfolioForm }

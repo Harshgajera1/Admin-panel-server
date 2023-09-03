@@ -1,33 +1,31 @@
-const mongoose = require('mongoose');
-const { resMessages, statusMessages } = require('./Config');
+import mongoose from 'mongoose'
+import { resMessages, statusMessages } from './Config.js'
 
 const Methods = {
-    async createModel (tblname, tblschema) {
+    async createModel (collectionName, schema) {
         try {
-            let modelDate = {}
-
-            let collections  = await mongoose.connection.db.listCollections().toArray()
-            let check = collections.find((collection) => collection.name === tblname)
-            // console.log(await mongoose.connection, check)
-            const modelNames = mongoose.modelNames();
-            const modelsWithSchemas = {};
-            if(check){
-                modelNames.forEach((modelName) => {
-                    const model = mongoose.model(modelName);
-                    console.log(model.schema)
-                    modelsWithSchemas[modelName] = model.schema;
-                });
-                // console.log(modelsWithSchemas)
-                // modelDate['schema'] = new mongoose.model(tblname).schema
-                // console.log(new mongoose.model(tblname))
-                // modelDate['schema'] = new mongoose.model(tblname)
-                // modelDate['tblname'] =  tblname
-            }else{
-                modelDate['schema'] = new mongoose.model(tblname,tblschema)
-                modelDate['tblname'] =  tblname
-            }
-
-            return modelDate
+            // let modelDate = {}
+            // let collections  = await mongoose.connection.db.listCollections().toArray()
+            // let check = collections.find((collection) => collection.name === collectionName)
+            // const modelNames = mongoose.modelNames();
+            // const modelsWithSchemas = {};
+            // if(check){
+            //     modelNames.forEach((modelName) => {
+            //         const model = mongoose.model(modelName);
+            //         console.log(model.schema)
+            //         modelsWithSchemas[modelName] = model.schema;
+            //     });
+            //     // console.log(modelsWithSchemas)
+            //     // modelDate['schema'] = new mongoose.model(collectionName).schema
+            //     // console.log(new mongoose.model(collectionName))
+            //     // modelDate['schema'] = new mongoose.model(collectionName)
+            //     // modelDate['collectionname'] =  collectionName
+            // }else{
+            //     modelDate['schema'] = new mongoose.model(collectionName,tblschema)
+            //     modelDate['collectionname'] =  collectionName
+            // }
+            const Model = mongoose.model(collectionName, schema, collectionName)
+            return Model
         } catch (e) {
             console.log(e)
         }
@@ -35,50 +33,69 @@ const Methods = {
 
     async performCRUD (action, collectionName, schema, data) {
         try {
-            let res = {
+            let response = {
                 status : 400,
                 message : statusMessages['400']
             }
 
-            const Model = mongoose.model(collectionName, schema)
+            const Model = await this.createModel(collectionName, schema)
             if(action == "i"){
                 const insert = new Model(data)
                 insert.validateSync()
                 let insertData = await insert.save()
 
-                res.status = 200
-                res.data = insertData
-                res.message = resMessages['insert']
+                response.status = 200
+                response.data = insertData
+                response.message = resMessages['insert']
             }else if(action == "u"){
                 await Model.findByIdAndUpdate(data._id,data)
 
-                res.status = 200
-                res.data = data
-                res.message = resMessages['update']
+                response.status = 200
+                response.data = data
+                response.message = resMessages['update']
             }else if(action == "d"){
                 await Model.findOneAndDelete({_id: data._id})
 
-                res.status = 200
-                res.message = resMessages['delete']
+                response.status = 200
+                response.message = resMessages['delete']
             }
-            return res
+            return response
         } catch (e) {
             console.log(e)
-            return { status : 500, message : e }
+            if(e.code == 11000){
+                return { status : 409, message : statusMessages['409'] }
+            }else{
+                return { status : 500, message : e }
+            }
         }
     },
 
-    async getDate(collectionName, schema, pipeline) {
+    async getData(collectionName, schema, pipeline, pagination) {
         try {
-            let res = {
-                status : 200
+
+            if(pagination){
+                var pageno = parseInt(pagination.pageno)
+                var pagelimit = parseInt(pagination.pagelimit)
+                var skip = (pageno - 1) * pagelimit
+                pipeline.push({ $skip : skip })
+                pipeline.push({ $limit : pagelimit })
             }
 
-            const Model = mongoose.model(collectionName, schema)
-            let data = await Model.find()
-            res.data = data
+            let response = {
+                status : 200,
+                pageno,
+                pagelimit,
+            }
 
-            return res
+            const Model = await this.createModel(collectionName, schema)
+            let data = await Model.aggregate(pipeline)
+            response.data = data
+
+            if(data.length){
+                response.nextpage = data.length >= pagelimit ? 1 : 0
+            }
+
+            return response
         } catch (e) {
             console.log(e)
             return { status : 500, message : e }
@@ -86,4 +103,4 @@ const Methods = {
     }
 }
 
-module.exports = Methods
+export default Methods

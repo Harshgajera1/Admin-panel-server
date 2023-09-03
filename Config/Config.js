@@ -1,4 +1,4 @@
-var mode = "prod"
+var mode = "dev"
 var MONGO_URL
 
 if(mode === "dev"){
@@ -29,7 +29,7 @@ const statusMessages = {
     404: 'Not Found',
     405: 'Method Not Allowed',
     406: 'Not Acceptable',
-    409: 'Conflict',
+    409: 'Duplicate Record',
     410: 'Gone',
     411: 'Length Required',
     412: 'Precondition Failed',
@@ -54,18 +54,23 @@ const resMessages = {
     notexist: 'Data not exist',
     error: 'Internal server error',
     token: 'Token generated',
+    emailinuse: 'Email is already in use. Please choose a different email or sign in.',
+    signin: 'Sign In successful',
+    login: 'Log In successful',
+    usernotexist: 'User does not exist. Please check your email or sign up for an account.',
+    wrongpass: 'Incorrect email or password',
 }
 
 
 const sendResponse = (req,res) =>{
-    let response = res.data
+    let response = req.responseData
     let status = response.status
 
     res.status(status).json(response)
 }
 
 
-module.exports = {
+export {
     MONGO_URL,
     resMessages,
     statusMessages,
