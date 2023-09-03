@@ -14,8 +14,7 @@ const LogMovixLog = async (req, res, next) => {
       const data = { url, time, ip : userIP,longitude, latitude }
 
       const resp = await Methods.performCRUD('i',collectionName,movixHistorySchema,data)
-
-      req.responseData = resp
+      req.responseData = {status : resp.status, message : resMessages['userlog']}
       next()
     } catch (e) {
       console.log(e)

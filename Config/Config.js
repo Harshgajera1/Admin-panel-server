@@ -59,6 +59,7 @@ const resMessages = {
     login: 'Log In successful',
     usernotexist: 'User does not exist. Please check your email or sign up for an account.',
     wrongpass: 'Incorrect email or password',
+    userlog: 'User verified',
 }
 
 

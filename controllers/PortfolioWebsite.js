@@ -15,7 +15,7 @@ const LogPortfolio = async (req, res, next) => {
       let data = { url, time, ip : userIP,longitude, latitude}
       const resp = await Methods.performCRUD('i', collectionName, portfolioHistorySchema, data)
 
-      req.responseData = resp
+      req.responseData = {status : resp.status, message : resMessages['userlog']}
       next()
     } catch (e) {
       console.log(e)
@@ -45,7 +45,7 @@ const InsertPortfolioForm = async (req, res, next) =>{
   try {
     const resp = await Methods.performCRUD('i','portfoliocontactform', PortfolioForm, req.body)
     
-    req.responseData = resp
+    req.responseData = {status : resp.status, message : resp.message}
     next()
   } catch (e) {
     console.log(e)
