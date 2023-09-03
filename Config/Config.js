@@ -1,4 +1,4 @@
-var mode = "dev"
+var mode = "prod"
 var MONGO_URL
 
 if(mode === "dev"){
