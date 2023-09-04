@@ -2,50 +2,35 @@ import mongoose from 'mongoose'
 import { resMessages, statusMessages } from './Config.js'
 
 const Methods = {
-    async createModel (collectionName, schema) {
+    async createModel (collection, schema) {
         try {
-            // let modelDate = {}
-            // let collections  = await mongoose.connection.db.listCollections().toArray()
-            // let check = collections.find((collection) => collection.name === collectionName)
-            // const modelNames = mongoose.modelNames();
-            // const modelsWithSchemas = {};
-            // if(check){
-            //     modelNames.forEach((modelName) => {
-            //         const model = mongoose.model(modelName);
-            //         console.log(model.schema)
-            //         modelsWithSchemas[modelName] = model.schema;
-            //     });
-            //     // console.log(modelsWithSchemas)
-            //     // modelDate['schema'] = new mongoose.model(collectionName).schema
-            //     // console.log(new mongoose.model(collectionName))
-            //     // modelDate['schema'] = new mongoose.model(collectionName)
-            //     // modelDate['collectionname'] =  collectionName
-            // }else{
-            //     modelDate['schema'] = new mongoose.model(collectionName,tblschema)
-            //     modelDate['collectionname'] =  collectionName
-            // }
-            const Model = mongoose.model(collectionName, schema, collectionName)
+            let Model
+            if(mongoose.models[collection]){
+                Model = mongoose.models[collection]
+            }else{
+                Model = mongoose.model(collection, schema, collection)
+            }
             return Model
         } catch (e) {
             console.log(e)
         }
     },
 
-    async performCRUD (action, collectionName, schema, data) {
+    async performCRUD (action, collection, schema, data) {
         try {
             let response = {
                 status : 400,
                 message : statusMessages['400']
             }
 
-            const Model = await this.createModel(collectionName, schema)
+            const Model = await this.createModel(collection, schema)
             if(action == "i"){
                 const insert = new Model(data)
                 insert.validateSync()
                 let insertData = await insert.save()
 
                 response.status = 200
-                response.data = insertData
+                // response.data = insertData
                 response.message = resMessages['insert']
             }else if(action == "u"){
                 await Model.findByIdAndUpdate(data._id,data)
@@ -65,7 +50,7 @@ const Methods = {
             if(e.code == 11000){
                 return { status : 409, message : statusMessages['409'] }
             }else{
-                return { status : 500, message : e }
+                return { status : 500, message : e}
             }
         }
     },
