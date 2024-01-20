@@ -59,30 +59,21 @@ const InsertPortfolioForm = async (req, res, next) =>{
     };
 
     const emailHtml = ejs.render(emailTemplate, data)
-    
-    // Create a Transporter object
+  
+    // Send mail
     const Transporter = nodemailer.createTransport({
       service: 'gmail',
+      host: "smtp.gmail.net",
+      port: 465,
+      secure: true,
       auth: {
-          type: 'OAuth2',
-          user: process.env.MAIL_USERNAME,
-          clientId: process.env.OAUTH_CLIENTID,
-          clientSecret: process.env.OAUTH_CLIENT_SECRET,
-          refreshToken: process.env.OAUTH_REFRESH_TOKEN,
-          accesstoken: process.env.OAUTH_ACCESS_TOKEN
-      }
+        user: process.env.RECEIVE_MAIL,
+        pass: process.env.APP_PASSWORD,
+      },
     })
-    // const Transporter = nodemailer.createTransport({
-    //   host: 'localhost',
-    //   port: 1025,
-    //   auth: {
-    //       user: 'project.1',
-    //       pass: 'secret.1'
-    //   }
-    // })
 
     let mailOptions = {
-      form : req.body.email,
+      from : req.body.email,
       to : process.env.RECEIVE_MAIL,
       subject: 'Contact Mail',
       html: emailHtml,
